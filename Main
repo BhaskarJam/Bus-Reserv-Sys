@@ -1,0 +1,350 @@
+from tkinter import*
+from PIL import ImageTk
+from tkinter import ttk
+from tkinter import Label
+from tkinter import messagebox
+from time import strftime
+
+import cx_Oracle
+import os
+
+
+
+def loginpage():
+    uname = e1.get()
+    password = e2.get()
+
+    if(uname == "" and password == "") :
+        messagebox.showinfo("", "Empty")
+
+
+    elif(uname == "bjam","bbdin" and password == "1992"):
+        
+
+        messagebox.showinfo("","Login Success")
+        rootp.destroy()
+        connectString = os.getenv('con_connect')
+        con = cx_Oracle.connect('bjam/1992')
+        cursor = con.cursor()
+        root  = Tk()
+        root.configure(background='white')
+        image1 = ImageTk.PhotoImage(file=r"C://Users/BJam/Dropbox/PC (15)/Desktop/Project/bus2.jpg")
+        image2 = ImageTk.PhotoImage(file=r"C://Users/BJam/Dropbox/PC (15)/Desktop/Project/mot.png")
+        image3 = ImageTk.PhotoImage(file=r"C://Users/BJam/Dropbox/PC (15)/Desktop/Project/no.png")
+        image4 = ImageTk.PhotoImage(file=r"C://Users/BJam/Dropbox/PC (15)/Desktop/Project/bus1.jpg")
+        panel = Label(root, image=image1, bg="black").place(x=0, y=0, relwidth=1, relheight=1)
+        root.title("BUS RESERVATION SYSTEM")
+        root.geometry("1500x1080+0+0")
+        title = Label(root,text="BUS BOOKING ",bd=5,relief=RIDGE,font=("Times New Roman", 30, "bold"),bg="black",fg="white")
+        title.pack(side=TOP,fill=X)
+
+        
+
+        Title = Label(text="MENU",font=("times new roman",30,"bold"), bg= 'black', fg="white").place(x=690,y=100)
+    
+        b1 = Button(root, text="Ticket Details",command=lambda:requestticket(),borderwidth="10", bg='lightgray', font="timesnewroman 12 bold").place(x=600, y=200,w=300, h=40)
+        b2 = Button(root, text="Bus Booking",command=lambda:busdetails(), borderwidth="10",bg='white', font="timesnewroman 12 bold").place(x=600, y=300,w=300, h=40)
+        b3 = Button(root, text="Passenger Information",command=lambda:passengerdetails(), borderwidth="10", bg='lightgray', font="timesnewroman 12 bold").place(x=600, y=400, w=300,h=40)
+        b5 = Button(root, text="All Passenger Details",command=lambda:frame_number2(), borderwidth="10", bg='lightgray', font="timesnewroman 12 bold").place(x=600, y=500, w=300,h=40)
+        b6 = Button(root, text="Delete Details",command=lambda:findidtodelte(), borderwidth="10", bg='lightgray', font="timesnewroman 12 bold").place(x=600, y=600, w=300,h=40)
+        b4 = Button(root, text="EXIT", bg='red', borderwidth="10", font='Helvetica 12',command=lambda: stop(root)).place(x=800, y=700,w=90)
+        b7 = Button(root, text="TIME", bg='lightgray', borderwidth="10", font='timesnewroman 12 bold',command=lambda: time()).place(x=610, y=700,w=90)
+        v = StringVar()
+        
+
+        def insertPassenger(id,name, gender, age, address, contactno):
+            
+            if id=='' or name=='' or gender=='' or age=='' or address=='' or contactno=='':
+                messagebox.showerror("Error","Field can't be empty")
+            else :
+                insert = "INSERT INTO PASSENGER(id,name,gender,age,address,contactno) VALUES(:1,:2,:3,:4,:5,:6)"
+                try:
+                    
+                    cursor.execute(insert,(int(id),name,gender,int(age),address,int(contactno)))
+                except cx_Oracle.IntegrityError:
+                    
+                    messagebox.showinfo("Error:","This ID already exists!\nTry another.")
+                else:
+                    
+                    messagebox.showinfo("Successful !","""your personal details are saved \nPress 'BACK BUTTON' !""")
+                    con.commit()
+                    con.commit()
+            
+        def insertbus(startingpoint, destination, noofticket,id):
+            
+             if startingpoint=='' or destination=='' or noofticket=='' or id=='':
+                 messagebox.showerror("Error","field empty")
+
+             else:
+                 
+                 
+                 insert = "INSERT INTO Bus(startingpoint,destination,noofticket,fair,id) VALUES(:1,:2,:3,5000 ,:4)"
+                 
+
+                 if startingpoint == destination:
+                     messagebox.showerror("Error:","You can't choose Same City")
+
+                 else: 
+                     try:
+                         cursor.execute(insert,(startingpoint,destination,noofticket,id))
+                        
+                     except cx_Oracle.IntegrityError:
+                         messagebox.showinfo("Error:","This ID already exists !\nTry another!")
+                     else:
+                         messagebox.showinfo("Successful Insertion!!","""booking saved \nPress 'BACK BUTTON'""")
+                         con.commit()
+        def retrieve(bg):
+            request = "select * from passenger d,bus b where d.id=b.id and b.id='" + bg + "'"
+            cursor.execute(request)
+            rows = cursor.fetchall()
+            con.commit()
+            print(len(rows))
+            return rows
+
+
+        def sel():
+            selection = "You selected the option " + str(v.get())
+            print(selection)
+
+
+        def passengerdetails():
+            # global v
+            root = Toplevel()
+            root.title("Passenger Information")
+            root.geometry("1080x600")
+            root.resizable(0, 0)
+            root.configure(background='white')
+            panel = Label(root, image=image2, bg="black").place(x=0, y=0, relwidth=1, relheight=1)
+
+            
+            l1 = Label(root,text="ID Number",font=("times new roman",15,"bold"),bg="white",fg="gray").place(x=350,y=150)
+            l2 = Label(root,text="Passenger Name",font=("times new roman",15,"bold"),bg="white",fg="gray").place(x=30,y=70)
+            l3 = Label(root,text="Gender",font=("times new roman",15,"bold"),bg="white",fg="gray").place(x=30,y=150)
+            l4 = Label(root,text="Age",font=("times new roman",15,"bold"),bg="white",fg="gray").place(x=350,y=220)
+            l5 = Label(root,text="Address",font=("times new roman",15,"bold"),bg="white",fg="gray").place(x=30,y=220)
+            l6 = Label(root,text="Contact Information",font=("times new roman",15,"bold"),bg="white",fg="gray").place(x=350,y=70)
+            e1 = Entry(root,textvariable=l1,font=("times new roman",15,"bold"),bg="lightgray")
+            e1.place(x=350,y=180,width=200)
+            e2 = Entry(root,textvariable=l2,font=("times new roman",15,"bold"),bg="lightgray")
+            e2.place(x=30,y=100,width=200)
+            
+            r1 = Radiobutton(root, text="Male", variable=v, value="Male",command=sel,background='lightgray').place(x=160, y=150)
+            v.set(3)
+
+            r2 = Radiobutton(root, text="Female", variable=v, value="Female", command=sel,background='lightgray').place(x=160, y=180)
+            r3 = Radiobutton(root, text="Other", variable=v, value="Other", command=sel,background='lightgray').place(x=160, y=210)
+            #e3=Entry(root)
+            #e3.place(x=100,y=120)
+            
+            e4= ttk.Combobox(root,textvariable=l4,font=("times new roman",15,"bold"),state="readonly")
+            e4['values']=("18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90")
+            e4.place(x=350,y=250,height=25)
+           
+            e5 = Entry(root,textvariable=l5,font=("times new roman",15,"bold"),bg="lightgray")
+            e5.place(x=30,y=250,width=200)
+            
+            e6=Entry(root,textvariable=l6,font=("times new roman",15,"bold"),bg="lightgray")
+            e6.place(x=350,y=100,width=200)
+
+            b2=Button(root,text="BACK",command=lambda : stop(root)).place(x=160,y=340)
+
+            b1=Button(root,text="SUBMIT",command=lambda : insertPassenger(e1.get(),e2.get(),str(v.get()),e4.get(),e5.get(),e6.get())).place(x=80,y=340)
+
+            root.mainloop()
+
+
+        def busdetails():
+            root = Toplevel()
+            root.title("BUS RESERVATION")
+            root.geometry("1080x600")
+            root.resizable(0, 0)
+            panel = Label(root, image=image3, bg="black").place(x=0, y=0, relwidth=1, relheight=1)
+            root.configure(background='lightgray')
+            
+            l1 = Label(root, text="ID:", font="Helvetica 12",background='lightgray').place(x=40, y=40, w=250, h=20)
+            l1 = Label(root, text="Starting point:", font="Helvetica 12",background='lightgray').place(x=40, y=80, w=250, h=20)
+            l2 = Label(root, text=" Destination:", font="Helvetica 12",background='lightgray').place(x=40, y=120, w=250, h=20)
+            l3 = Label(root, text="Total No Of tickets:", font="Helvetica 12",background='lightgray').place(x=40, y=160, w=250, h=20)
+            # l4=Label(root,text="Date Of Entry count:").place(x=40,y=160)
+            e4=Entry(root)
+            e4.place(x=350,y=40)
+            e1 = Entry(root)
+            e1.place(x=350, y=80)
+            e2 = Entry(root)
+            e2.place(x=350, y=120)
+            e3 = Entry(root)
+            e3.place(x=350, y=160)
+            b2 = Button(root, text="Back", command=lambda: stop(root)).place(x=200, y=200)
+            b1 = Button(root, text="Submit", command=lambda: insertbus(e1.get(), e2.get(), e3.get(),e4.get())).place(x=40, y=200)
+           
+            root.mainloop()
+
+        def grid1(bg):
+            root = Toplevel()
+            root.title("TICKET DETAILS")
+            root.geometry("1080x600")
+            root.resizable(0, 0)
+            panel = Label(root, image=image4, bg="black").place(x=0, y=0, relwidth=1, relheight=1)
+            root.configure(background='white')
+            rows = retrieve(bg)
+            Label(root, text='ID', bg="#6699CC", font="timesnewroman 12 bold").grid(row=0, column=0, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+            Label(root, text='NAME', bg="#6699CC", font="timesnewroman 12 bold").grid(row=0, column=1, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+            Label(root, text='GENDER', bg="#6699CC", font="timesnewroman 12 bold").grid(row=0, column=2, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+            Label(root, text='AGE', bg="#6699CC", font="timesnewroman 12 bold").grid(row=0, column=3, sticky='E', padx=5,pady=5, ipadx=5, ipady=5)
+            Label(root, text='ADDRESS', bg="#6699CC", font="timesnewroman 12 bold").grid(row=0, column=4, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+            Label(root, text='CONTACT NO', bg="#6699CC", font="timesnewroman 12 bold").grid(row=0, column=5, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+            Label(root, text='STARTING POINT', bg="#6699CC", font="timesnewroman 12 bold").grid(row=0, column=6, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+            Label(root, text='DESTINATION', bg="#6699CC", font="timesnewroman 12 bold").grid(row=0, column=7, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+            Label(root, text='NO OF TICKET', bg="#6699CC", font="timesnewroman 12 bold").grid(row=0, column=8, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+
+           # Label(root, text='FARE', bg="#6699CC", font="timesnewroman 12 bold").grid(row=0, column=9, sticky='E', padx=5,pady=5, ipadx=5, ipady=5)
+
+            x = 1
+            for row in rows:
+                Label(root, text=row[0], bg="Grey", font="timesnewroman 12 bold").grid(row=x, column=0, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+                Label(root, text=row[1], bg="Grey", font="timesnewroman 12 bold").grid(row=x, column=1, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+                Label(root, text=row[2], bg="Grey", font="timesnewroman 12 bold").grid(row=x, column=2, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+                Label(root, text=row[3], bg="Grey", font="timesnewroman 12 bold").grid(row=x, column=3, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+                Label(root, text=row[4], bg="Grey", font="timesnewroman 12 bold").grid(row=x, column=4, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+                Label(root, text=row[5], bg="Grey", font="timesnewroman 12 bold").grid(row=x, column=5, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+                Label(root, text=row[6], bg="Grey", font="timesnewroman 12 bold").grid(row=x, column=6, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+                Label(root, text=row[7], bg="Grey", font="timesnewroman 12 bold").grid(row=x, column=7, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+                Label(root, text=row[8], bg="Grey", font="timesnewroman 12 bold").grid(row=x, column=8, sticky='E', padx=5, pady=5, ipadx=5, ipady=5)
+
+               # Label(root, text=row[9], bg="Grey", font="timesnewroman 12 bold").grid(row=x, column=9, sticky='E', padx=5,pady=5, ipadx=5, ipady=5)
+                
+
+                x = x + 1
+            root.mainloop()
+
+        def findidtodelte():
+            root = Toplevel()
+            panel = Label(root, image=image2, bg="black").place(x=0, y=0, relwidth=1, relheight=1)
+            root.title("Delete Tickets")
+            root.geometry("700x400")
+            root.resizable(0, 0)
+            root.configure(background='white')
+            l = Label(root, text="ENTER Passenger ID",  borderwidth="5", bg='lightgray', font="timesnewroman 16 bold").place(x=160, y=0, w=400, h=60)
+            e = Entry(root)
+            e.place(x=250, y=90, w=200, h=20)
+            b2 = Button(root, text="Back", borderwidth="5", bg='lightgray', font="timesnewroman 12 bold", command=lambda: stop(root)).place(x=360, y=130)
+            b = Button(root, text="ENTER", borderwidth="5", bg='lightgray', font="timesnewroman 12 bold", command=lambda: delete_data(e.get())).place(x=250, y=130)
+            root.mainloop()
+
+        def requestticket():
+            root = Toplevel()
+            panel = Label(root, image=image2, bg="black").place(x=0, y=0, relwidth=1, relheight=1)
+            root.title("TICKETS")
+            root.geometry("1080x200")
+            root.resizable(0, 0)
+            root.configure(background='white')
+            l = Label(root, text="ENTER TICKET ID").place(x=50, y=50, w=400, h=40)
+            e = Entry(root)
+            e.place(x=500, y=50)
+            b2 = Button(root, text="Back", command=lambda: stop(root)).place(x=600, y=100)
+            b = Button(root, text="ENTER", command=lambda: grid1(e.get())).place(x=500, y=100)
+            root.mainloop()
+
+        def delete_data(id):
+            con= cx_Oracle.connect("bjam/1992")
+            cur= con.cursor()
+            
+            cur.execute("Delete from passenger Where id=:1",(id,))
+            con.commit()
+            con.close()
+            messagebox.showinfo("SUCCESS","Booking Deleted")
+
+
+        def frame_number2():
+            def showdata():
+               
+                conn= cx_Oracle.connect("bjam/1992")
+                cur=conn.cursor()
+                cur.execute("select * from passenger")
+                rows = cur.fetchall()
+                if len(rows)!=0:
+                
+                    for row in rows:
+                        passenger_table.insert('',END,values=row)
+                    conn.commit()
+                conn.close()
+
+            root  = Toplevel()
+            root.title("All Passenger IDs")
+            root.geometry("1300x430")
+            root.resizable(0, 0)
+            panel = Label(root, image=image3, bg="lightgray").place(x=0, y=0, relwidth=1, relheight=1)
+            frame_number2=Frame(root,bd=4,relief=RIDGE,bg="#6699CC")
+            frame_number2.place(x=0,y=0,width=1400,height=390)
+        
+ 
+            table_frame = Frame(frame_number2,bd=1,relief=RIDGE,bg="lightgray")
+            table_frame.place(x=10,y=60,width=1250,height=280)
+
+            scroll_x = Scrollbar(table_frame,orient=HORIZONTAL)
+            scroll_y = Scrollbar(table_frame,orient=VERTICAL)
+            passenger_table = ttk.Treeview(table_frame,columns=("id","name","gender","age","address","contactno"),xscrollcommand=scroll_x.set,yscrollcommand=scroll_y.set)
+            scroll_x.pack(side=BOTTOM,fill=X)
+            scroll_y.pack(side=RIGHT,fill=Y)
+            scroll_x.config(command=passenger_table.xview)
+            scroll_y.config(command=passenger_table.yview)
+            passenger_table.heading("id",text="ID")
+            passenger_table.heading("name",text="NAME")
+            passenger_table.heading("gender",text="GENDER")
+            passenger_table.heading("age",text="Age")
+            passenger_table.heading("address",text="Address")
+            passenger_table.heading("contactno",text="Contact")
+            passenger_table["show"]="headings"
+      
+            passenger_table.pack(fill=BOTH)
+            b2 = Button(root, text="Back", command=lambda: stop(root)).place(x=610, y=400)
+    
+            showdata()
+            root.mainloop()
+        
+        def time():
+            def timing():
+                current_time = strftime("%I : %H : %M %p")
+                clock.config(text=current_time)
+  
+            root=Tk()
+            root.title("TIME")
+            root.geometry("400x80")
+            root.resizable(0, 0)
+            root.configure(background='lightgray')
+            clock=Label(root,font=("timesnewroman",40,"bold"), bg="lightgray", fg="black")
+            clock.grid(row=1,column=1,pady=5,padx=5)
+
+            timing()  
+            root.mainloop()
+         
+        
+        def stop(root):
+            root.destroy()
+        root.mainloop()
+
+
+    else :    
+        messagebox.showinfo("","Incorrent Username and Password")
+
+
+rootp = Tk()
+rootp.title("Login")
+rootp.geometry("300x200")
+global e1
+global e2
+
+Label(rootp, text="UserName").place(x=10, y=10)
+Label(rootp, text="Password").place(x=10, y=40)
+
+e1 = Entry(rootp)
+e1.place(x=140, y=10)
+
+e2 = Entry(rootp)
+e2.place(x=140, y=40)
+e2.config(show="*")
+
+
+Button(rootp, text="Login", command=loginpage ,height = 3, width = 13).place(x=10, y=100)
+
+rootp.mainloop()
